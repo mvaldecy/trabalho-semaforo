@@ -1,0 +1,38 @@
+{
+    "intersecoes": [
+      {"nome": "A"},
+      {"nome": "B"},
+      {"nome": "C"},
+      {"nome": "D"}
+    ],
+    "ruas": [
+      {
+        "origem": "A",
+        "destino": "B",
+        "tempo": 5,
+        "capacidade": 10,
+        "maoDupla": true
+      },
+      {
+        "origem": "B",
+        "destino": "C",
+        "tempo": 3,
+        "capacidade": 8,
+        "maoDupla": false
+      },
+      {
+        "origem": "C",
+        "destino": "D",
+        "tempo": 4,
+        "capacidade": 12,
+        "maoDupla": true
+      },
+      {
+        "origem": "D",
+        "destino": "A",
+        "tempo": 6,
+        "capacidade": 15,
+        "maoDupla": false
+      }
+    ]
+  }

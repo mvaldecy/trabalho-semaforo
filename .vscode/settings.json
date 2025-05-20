@@ -1,0 +1,6 @@
+{
+  "java.project.sourcePaths": ["."],
+  "java.project.referencedLibraries": [
+    "/home/marcos/Área de Trabalho/semaforo-main2/lib/json-simple-1.1.1.jar"
+  ]
+}
