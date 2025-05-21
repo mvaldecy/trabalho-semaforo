@@ -1,9 +1,8 @@
-// Imports
 import cidade.Grafo;
 import cidade.Intersecao;
 import cidade.Mapa;
 import cidade.Rua;
-import estruturas.Lista;
+import estruturas.*;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -48,9 +47,10 @@ public class Simulador {
             Veiculo veiculo = iniciais.obter(i);
             veiculos.adicionar(veiculo);
             estatisticas.registrarVeiculoCriado();
-            definirRotaSimplificada(veiculo);
+            definirRotaDijkstra(veiculo);
             veiculo.getOrigem().adicionarVeiculo(veiculo);
-            System.out.printf("[GERADO] Veículo %s - Origem: %s | Destino: %s\n", veiculo.getId(), veiculo.getOrigem().getNome(), veiculo.getDestino().getNome());
+            System.out.printf("[GERADO] Veículo %s - Origem: %s | Destino: %s\n",
+                    veiculo.getId(), veiculo.getOrigem().getNome(), veiculo.getDestino().getNome());
         }
 
         System.out.println("Simulação iniciada - Modo: " + modoOperacao);
@@ -87,7 +87,6 @@ public class Simulador {
     }
 
     private void passoSimulacao() {
-        // Geração de novos veículos
         if (tempoSimulacao % intervaloGeracao == 0 && veiculos.tamanho() < LIMITE_VEICULOS) {
             int faltantes = LIMITE_VEICULOS - veiculos.tamanho();
             int gerarAgora = Math.min(INCREMENTO_VEICULOS, faltantes);
@@ -97,10 +96,10 @@ public class Simulador {
                 Veiculo veiculo = novos.obter(i);
                 veiculos.adicionar(veiculo);
                 estatisticas.registrarVeiculoCriado();
-                definirRotaSimplificada(veiculo);
+                definirRotaDijkstra(veiculo);
                 veiculo.getOrigem().adicionarVeiculo(veiculo);
                 System.out.printf("[GERADO] Veículo %s - Origem: %s | Destino: %s\n",
-                        veiculo.getId(), veiculo.getOrigem(), veiculo.getDestino());
+                        veiculo.getId(), veiculo.getOrigem().getNome(), veiculo.getDestino().getNome());
             }
         }
 
@@ -115,20 +114,6 @@ public class Simulador {
                         veiculo.getId(), veiculo.getTempoViagem(), veiculo.getTempoEspera());
                 veiculosRemover.adicionar(veiculo);
             } else {
-                if (veiculo.getRuaAtual() == null && !veiculo.getRota().vazia()) {
-                    Rua proximaRua = veiculo.getRota().obter(0);
-                    Intersecao intersecaoAtual = veiculo.getIntersecaoAtual();
-
-                    if (intersecaoAtual.getSemaforo() != null && !intersecaoAtual.getSemaforo().estaVerde()) {
-                        veiculo.incrementarTempoEspera();
-                    } else {
-                        if (proximaRua.adicionarVeiculo()) {
-                            veiculo.avancarNaRota();
-                            intersecaoAtual.removerVeiculo();
-                            veiculo.setRuaAtual(proximaRua);
-                        }
-                    }
-                }
                 veiculo.atualizar();
             }
         }
@@ -137,18 +122,19 @@ public class Simulador {
             veiculos.remover(veiculosRemover.obter(i));
         }
 
+        estatisticas.setTempoSimulacao(tempoSimulacao);
         estatisticas.atualizarRuasCongestionadas(mapa.getGrafo().getArestas());
 
-        // Print de semáforos congestionados
         Lista<Semaforo> semaforos = ordenarSemaforosPorFila(controladorSemaforos.getSemaforos());
         System.out.println("\n[SEMAFOROS] Top congestionados:");
         for (int i = 0; i < Math.min(3, semaforos.tamanho()); i++) {
             Semaforo s = semaforos.obter(i);
-            System.out.printf("- %s (Fila: %d veículos)\n",
-                    s.getIntersecao(), s.getIntersecao().getFilaVeiculos().tamanho());
+            String status = s.estaVerde() ? "VERDE" : "VERMELHO";
+            int tempoRestante = s.getTempoRestante();
+            System.out.printf("- %s (Fila: %d veículos) | Status: %s | Tempo restante: %d\n",
+                    s.getIntersecao(), s.getIntersecao().getFilaVeiculos().tamanho(), status, tempoRestante);
         }
 
-        // Logs temporizados
         if (tempoSimulacao % 10 == 0) {
             System.out.println("\nMinuto " + tempoSimulacao);
             System.out.println("Veículos em trânsito: " + veiculos.tamanho());
@@ -170,12 +156,20 @@ public class Simulador {
         return ordenados;
     }
 
-    private void definirRotaSimplificada(Veiculo veiculo) {
+    private void definirRotaDijkstra(Veiculo veiculo) {
+        Fila<Intersecao> caminho = Dijkstra.encontrarMenorCaminho(mapa.getGrafo(), veiculo.getOrigem(), veiculo.getDestino());
         Lista<Rua> rota = new Lista<>();
-        Lista<Rua> arestas = mapa.getGrafo().getArestasAdjacentes(veiculo.getOrigem());
-        for (int i = 0; i < 3 && i < arestas.tamanho(); i++) {
-            rota.adicionar(arestas.obter(i));
+
+        Intersecao anterior = caminho.desenfileirar();
+        while (!caminho.vazia()) {
+            Intersecao atual = caminho.desenfileirar();
+            Rua rua = mapa.getGrafo().getAresta(anterior, atual);
+            if (rua != null) {
+                rota.adicionar(rua);
+            }
+            anterior = atual;
         }
+
         veiculo.setRota(rota);
     }
 
@@ -193,14 +187,5 @@ public class Simulador {
         }
         estatisticas.imprimirEstatisticas();
         System.out.println("\nSimulação encerrada após " + tempoSimulacao + " minutos.");
-    }
-
-    public void exibirEstadoVeiculo(Veiculo veiculo) {
-        System.out.printf("Veículo %d na %s | espera: %d | semáforo: %s\n",
-                veiculo.getId(),
-                veiculo.getIntersecaoAtual().getNome(),
-                veiculo.getTempoEspera(),
-                veiculo.getIntersecaoAtual().getSemaforo() == null ? "SEM SEMÁFORO" :
-                        (veiculo.getIntersecaoAtual().getSemaforo().estaVerde() ? "VERDE" : "VERMELHO"));
     }
 }

@@ -52,7 +52,7 @@ public class Estatisticas {
             while (j < ordenadas.tamanho() && atual.getTaxaOcupacao() < ordenadas.obter(j).getTaxaOcupacao()) {
                 j++;
             }
-            ordenadas.inserir(j, atual); // Inserção ordenada decrescente
+            ordenadas.inserir(j, atual); // decrescente
         }
         return ordenadas;
     }
@@ -90,10 +90,8 @@ public class Estatisticas {
             Rua rua = ruasMaisCongestionadas.obter(i);
             double ocup = rua.getTaxaOcupacao();
             ocupTotal += ocup;
-
             Intersecao destino = rua.getDestino();
             int tamanhoFila = destino.getFilaVeiculos().tamanho();
-
             System.out.printf("- %s -> %s (%.0f%% ocupação) | Fila na interseção destino: %d veículos\n",
                     rua.getOrigem(), destino, ocup * 100, tamanhoFila);
         }
