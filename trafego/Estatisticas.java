@@ -1,6 +1,7 @@
 package trafego;
 
 import cidade.Rua;
+import cidade.Intersecao;
 import estruturas.Lista;
 
 public class Estatisticas {
@@ -51,7 +52,7 @@ public class Estatisticas {
             while (j < ordenadas.tamanho() && atual.getTaxaOcupacao() < ordenadas.obter(j).getTaxaOcupacao()) {
                 j++;
             }
-            ordenadas.inserir(j, atual); // Inserção ordenada (decrescente)
+            ordenadas.inserir(j, atual); // Inserção ordenada decrescente
         }
         return ordenadas;
     }
@@ -89,7 +90,12 @@ public class Estatisticas {
             Rua rua = ruasMaisCongestionadas.obter(i);
             double ocup = rua.getTaxaOcupacao();
             ocupTotal += ocup;
-            System.out.printf("- %s (%.0f%% ocupação)\n", rua, ocup * 100);
+
+            Intersecao destino = rua.getDestino();
+            int tamanhoFila = destino.getFilaVeiculos().tamanho();
+
+            System.out.printf("- %s -> %s (%.0f%% ocupação) | Fila na interseção destino: %d veículos\n",
+                    rua.getOrigem(), destino, ocup * 100, tamanhoFila);
         }
 
         if (ruasMaisCongestionadas.tamanho() > 0) {

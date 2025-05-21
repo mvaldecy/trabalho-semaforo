@@ -91,6 +91,7 @@ public class Semaforo {
     }
 }
 
+
 enum EstadoSemaforo {
     VERDE, AMARELO, VERMELHO
 }
