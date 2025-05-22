@@ -80,26 +80,8 @@ public class Veiculo {
         tempoViagem++;
 
         if (ruaAtual == null) {
-            if (!rota.vazia()) {
-                Rua proximaRua = rota.obter(0);
-                Intersecao intersecaoAtual = getIntersecaoAtual();
-
-                if ((intersecaoAtual.getSemaforo() != null && !intersecaoAtual.getSemaforo().estaVerde()) ||
-                    !proximaRua.adicionarVeiculo()) {
-                    tempoEspera++;
-                    return;
-                }
-
-                rota.remover(0);
-                if (intersecaoAtual.getSemaforo() != null) {
-                    intersecaoAtual.removerVeiculo();
-                }
-                ruaAtual = proximaRua;
-                tempoNaRua = 0;
-            } else {
-                chegou = true;
-                return;
-            }
+            entrarNaProximaRua();
+            return;
         }
 
         tempoNaRua++;
@@ -109,6 +91,30 @@ public class Veiculo {
             ruaAtual = null;
             tempoNaRua = 0;
         }
+    }
+
+    private void entrarNaProximaRua() {
+        if (!rota.vazia()) {
+            Rua proximaRua = rota.obter(0);
+            Intersecao atual = getIntersecaoAtual();
+
+            if (podeAvancar(proximaRua, atual)) {
+                rota.remover(0);
+                if (atual.getSemaforo() != null) {
+                    atual.removerVeiculo();
+                }
+                ruaAtual = proximaRua;
+                tempoNaRua = 0;
+            } else {
+                tempoEspera++;
+            }
+        } else {
+            chegou = true;
+        }
+    }
+
+    private boolean podeAvancar(Rua proximaRua, Intersecao atual) {
+        return (atual.getSemaforo() == null || atual.getSemaforo().estaVerde()) && proximaRua.adicionarVeiculo();
     }
 
     public Intersecao getIntersecaoAtual() {

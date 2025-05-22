@@ -10,15 +10,16 @@ public class HeuristicaTempoEspera implements HeuristicaControle {
         for (int i = 0; i < semaforos.tamanho(); i++) {
             Semaforo semaforo = semaforos.obter(i);
             Intersecao intersecao = semaforo.getIntersecao();
-            int tamanhoFila = intersecao.getFilaVeiculos().tamanho();
-            
-            // Ajusta o tempo de verde proporcional ao tamanho da fila
-            int novoVerde = Math.min(60, 15 + tamanhoFila * 5);  // Mínimo 15s, máximo 60s
-            semaforo.ajustarTempos(novoVerde, 5, 30);  // verde, amarelo, vermelho
-            
-            System.out.println("Semaforo " + intersecao.getNome() + 
-                             " - Fila: " + tamanhoFila + 
-                             " - Verde: " + novoVerde + "s");
+            int fila = intersecao.getFilaVeiculos().tamanho();
+
+            int verde = Math.min(60, 15 + fila * 5); // mínimo 15s, máximo 60s
+            int amarelo = 5;
+            int vermelho = 30;
+
+            semaforo.ajustarTempos(verde, amarelo, vermelho);
+
+            System.out.printf("[HEURÍSTICA - TEMPO_ESPERA] Semáforo %s | Fila: %d | Verde: %ds\n",
+                    intersecao.getNome(), fila, verde);
         }
     }
 }

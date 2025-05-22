@@ -2,6 +2,7 @@ package cidade;
 
 import java.io.FileReader;
 import estruturas.Lista;
+import estruturas.HashMapX;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -9,10 +10,12 @@ import org.json.simple.parser.JSONParser;
 public class Mapa {
     private Grafo grafo;
     private Lista<Intersecao> intersecoes;
+    private HashMapX<String, Intersecao> mapaIntersecoes;
 
     public Mapa() {
         this.grafo = new GrafoListaAdjacencia();
         this.intersecoes = new Lista<>();
+        this.mapaIntersecoes = new HashMapX<>();
     }
 
     public void carregarMapa(String caminhoArquivo) {
@@ -29,6 +32,7 @@ public class Mapa {
 
                 Intersecao intersecao = new Intersecao(nome, latitude, longitude);
                 intersecoes.adicionar(intersecao);
+                mapaIntersecoes.colocar(nome, intersecao); // otimização
                 grafo.adicionarVertice(intersecao);
             }
 
@@ -71,13 +75,7 @@ public class Mapa {
     }
 
     private Intersecao buscarIntersecaoPorNome(String nome) {
-        for (int i = 0; i < intersecoes.tamanho(); i++) {
-            Intersecao atual = intersecoes.obter(i);
-            if (atual.getNome().equals(nome)) {
-                return atual;
-            }
-        }
-        return null;
+        return mapaIntersecoes.obter(nome); // busca otimizada
     }
 
     public Grafo getGrafo() {

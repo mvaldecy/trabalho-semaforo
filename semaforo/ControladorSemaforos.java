@@ -9,11 +9,11 @@ import heuristica.HeuristicaTempoEspera;
 public class ControladorSemaforos {
     private final Lista<Semaforo> semaforos;
     private HeuristicaControle heuristica;
-    private int tempoSimulacao;  // Variável adicionada para resolver o erro
+    private int tempoSimulacao;
 
     public ControladorSemaforos() {
         this.semaforos = new Lista<>();
-        this.tempoSimulacao = 0;  // Inicializa a variável
+        this.tempoSimulacao = 0;
     }
 
     public void adicionarSemaforo(Semaforo semaforo) {
@@ -25,7 +25,7 @@ public class ControladorSemaforos {
             Semaforo semaforo = semaforos.obter(i);
             semaforo.setModoOperacao(modo);
         }
-        
+
         switch (modo) {
             case CICLO_FIXO -> heuristica = new HeuristicaCicloFixo();
             case TEMPO_ESPERA -> heuristica = new HeuristicaTempoEspera();
@@ -34,25 +34,16 @@ public class ControladorSemaforos {
     }
 
     public void atualizarSemaforos() {
-        // Alternar semáforos periodicamente
-        if (tempoSimulacao % 10 == 0) {  // A cada 10 minutos
-            for (int i = 0; i < semaforos.tamanho(); i++) {
-                Semaforo semaforo = semaforos.obter(i);
-                // Alternar entre verde e vermelho
-                if (semaforo.estaVerde()) {
-                    semaforo.mudarEstado();
-                } else {
-                    semaforo.mudarEstado();
-                }
-            }
+        for (int i = 0; i < semaforos.tamanho(); i++) {
+            Semaforo semaforo = semaforos.obter(i);
+            semaforo.atualizar();
         }
-        
-        // Aplicar heurísticas
+
         if (heuristica != null) {
             heuristica.aplicar(semaforos);
         }
-        
-        tempoSimulacao++;  // Incrementa o tempo de simulação
+
+        tempoSimulacao++;
     }
 
     public Lista<Semaforo> getSemaforos() {

@@ -1,13 +1,19 @@
+
+
 import cidade.Grafo;
 import cidade.Intersecao;
 import cidade.Mapa;
 import cidade.Rua;
 import estruturas.*;
+import semaforo.*;
+import trafego.Estatisticas;
+import trafego.GeradorVeiculos;
+import trafego.Veiculo;
+
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-import semaforo.*;
-import trafego.*;
+
 
 public class Simulador {
 
@@ -22,8 +28,8 @@ public class Simulador {
     private Random random;
     private boolean pausado;
 
-    private static final int LIMITE_VEICULOS = 10000;
-    private static final int INICIAL_VEICULOS = 5000;
+    private static final int LIMITE_VEICULOS = 1000;
+    private static final int INICIAL_VEICULOS = 1000;
     private static final int INCREMENTO_VEICULOS = 5;
 
     public Simulador() {
@@ -87,6 +93,7 @@ public class Simulador {
     }
 
     private void passoSimulacao() {
+        // Geração incremental de veículos
         if (tempoSimulacao % intervaloGeracao == 0 && veiculos.tamanho() < LIMITE_VEICULOS) {
             int faltantes = LIMITE_VEICULOS - veiculos.tamanho();
             int gerarAgora = Math.min(INCREMENTO_VEICULOS, faltantes);
@@ -103,15 +110,12 @@ public class Simulador {
             }
         }
 
-        controladorSemaforos.atualizarSemaforos();
-
+        // Atualiza veículos
         Lista<Veiculo> veiculosRemover = new Lista<>();
         for (int i = 0; i < veiculos.tamanho(); i++) {
             Veiculo veiculo = veiculos.obter(i);
             if (veiculo.isChegou()) {
                 estatisticas.registrarVeiculoChegou(veiculo);
-                System.out.printf("[FINALIZADO] Veículo %s - Tempo viagem: %d min | Espera: %d min\n",
-                        veiculo.getId(), veiculo.getTempoViagem(), veiculo.getTempoEspera());
                 veiculosRemover.adicionar(veiculo);
             } else {
                 veiculo.atualizar();
@@ -122,22 +126,26 @@ public class Simulador {
             veiculos.remover(veiculosRemover.obter(i));
         }
 
+        // Atualiza semáforos depois que as filas mudaram
+        controladorSemaforos.atualizarSemaforos();
+
+        // Estatísticas
         estatisticas.setTempoSimulacao(tempoSimulacao);
         estatisticas.atualizarRuasCongestionadas(mapa.getGrafo().getArestas());
 
-        Lista<Semaforo> semaforos = ordenarSemaforosPorFila(controladorSemaforos.getSemaforos());
-        System.out.println("\n[SEMAFOROS] Top congestionados:");
-        for (int i = 0; i < Math.min(3, semaforos.tamanho()); i++) {
-            Semaforo s = semaforos.obter(i);
-            String status = s.estaVerde() ? "VERDE" : "VERMELHO";
-            int tempoRestante = s.getTempoRestante();
-            System.out.printf("- %s (Fila: %d veículos) | Status: %s | Tempo restante: %d\n",
-                    s.getIntersecao(), s.getIntersecao().getFilaVeiculos().tamanho(), status, tempoRestante);
-        }
-
+        // Log dos semáforos mais congestionados
         if (tempoSimulacao % 10 == 0) {
-            System.out.println("\nMinuto " + tempoSimulacao);
-            System.out.println("Veículos em trânsito: " + veiculos.tamanho());
+            Lista<Semaforo> semaforos = ordenarSemaforosPorFila(controladorSemaforos.getSemaforos());
+            System.out.println("\n[SEMAFOROS] Top congestionados:");
+            for (int i = 0; i < Math.min(3, semaforos.tamanho()); i++) {
+                Semaforo s = semaforos.obter(i);
+                String status = s.estaVerde() ? "VERDE" : (s.estaAmarelo() ? "AMARELO" : "VERMELHO");
+                System.out.printf("- %s (Fila: %d veículos) | Status: %s | Tempo restante: %ds\n",
+                        s.getIntersecao().getNome(),
+                        s.getIntersecao().getFilaVeiculos().tamanho(),
+                        status,
+                        s.getTempoRestante());
+            }
         }
     }
 
@@ -147,8 +155,8 @@ public class Simulador {
             Semaforo atual = semaforos.obter(i);
             int j = 0;
             while (j < ordenados.tamanho() &&
-                   atual.getIntersecao().getFilaVeiculos().tamanho() < 
-                   ordenados.obter(j).getIntersecao().getFilaVeiculos().tamanho()) {
+                    atual.getIntersecao().getFilaVeiculos().tamanho() <
+                    ordenados.obter(j).getIntersecao().getFilaVeiculos().tamanho()) {
                 j++;
             }
             ordenados.inserir(j, atual);

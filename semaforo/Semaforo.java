@@ -9,7 +9,7 @@ public class Semaforo {
     private int tempoAmarelo;
     private int tempoVermelho;
     private int tempoRestante;
-    private ModoOperacao modoOperacao; // Mantido pois é usado pelo Controlador
+    private ModoOperacao modoOperacao;
 
     public Semaforo(Intersecao intersecao, int tempoVerde, int tempoAmarelo, int tempoVermelho, ModoOperacao modo) {
         this.intersecao = intersecao;
@@ -17,8 +17,23 @@ public class Semaforo {
         this.tempoAmarelo = tempoAmarelo;
         this.tempoVermelho = tempoVermelho;
         this.modoOperacao = modo;
-        this.estado = EstadoSemaforo.VERMELHO;
-        this.tempoRestante = tempoVermelho;
+
+        // Estado inicial aleatório
+        int sorteio = (int)(Math.random() * 3);
+        switch (sorteio) {
+            case 0 -> {
+                estado = EstadoSemaforo.VERDE;
+                tempoRestante = tempoVerde;
+            }
+            case 1 -> {
+                estado = EstadoSemaforo.AMARELO;
+                tempoRestante = tempoAmarelo;
+            }
+            default -> {
+                estado = EstadoSemaforo.VERMELHO;
+                tempoRestante = tempoVermelho;
+            }
+        }
     }
 
     public void atualizar() {
@@ -69,7 +84,7 @@ public class Semaforo {
         this.tempoVerde = verde;
         this.tempoAmarelo = amarelo;
         this.tempoVermelho = vermelho;
-        
+
         tempoRestante = switch (estado) {
             case VERDE -> (int) ((double) tempoRestante / tempoVerde * verde);
             case AMARELO -> (int) ((double) tempoRestante / tempoAmarelo * amarelo);
@@ -90,7 +105,6 @@ public class Semaforo {
         return "Semáforo " + intersecao.getNome() + ": " + estado + " (" + tempoRestante + "s)";
     }
 }
-
 
 enum EstadoSemaforo {
     VERDE, AMARELO, VERMELHO
