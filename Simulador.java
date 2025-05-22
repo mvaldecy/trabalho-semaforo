@@ -9,6 +9,7 @@ import java.util.TimerTask;
 
 public class Simulador {
 
+    // Instâncias principais do sistema de simulação
     private final Mapa mapa = new Mapa();
     private final ControladorSemaforos controladorSemaforos = new ControladorSemaforos();
     private final Lista<Veiculo> veiculos = new Lista<>();
@@ -20,10 +21,15 @@ public class Simulador {
     private int intervaloGeracao = 1;
     private boolean pausado;
 
+    // Constantes de configuração da simulação
     private static final int LIMITE_VEICULOS = 1000;
     private static final int INICIAL_VEICULOS = 1000;
     private static final int INCREMENTO_VEICULOS = 5;
 
+    /**
+     * Inicia a simulação carregando o mapa, configurando semáforos,
+     * gerando veículos iniciais e disparando o timer de execução.
+     */
     public void iniciar(String arquivoMapa, int duracaoMinutos, ModoOperacao modoOperacao) {
         mapa.carregarMapa(arquivoMapa);
         inicializarSemaforos(mapa.getGrafo(), modoOperacao);
@@ -35,6 +41,9 @@ public class Simulador {
         iniciarTimer(duracaoMinutos);
     }
 
+    /**
+     * Configura os semáforos para as interseções com probabilidade de 70%.
+     */
     private void inicializarSemaforos(Grafo grafo, ModoOperacao modo) {
         Lista<Intersecao> intersecoes = grafo.getVertices();
         for (int i = 0; i < intersecoes.tamanho(); i++) {
@@ -49,6 +58,9 @@ public class Simulador {
         System.out.println("Semáforos configurados: " + controladorSemaforos.getSemaforos().tamanho());
     }
 
+    /**
+     * Gera o conjunto inicial de veículos e define as rotas com Dijkstra.
+     */
     private void gerarVeiculosIniciais() {
         Lista<Veiculo> iniciais = geradorVeiculos.gerarVeiculos(INICIAL_VEICULOS);
         for (int i = 0; i < iniciais.tamanho(); i++) {
@@ -61,6 +73,9 @@ public class Simulador {
         }
     }
 
+    /**
+     * Inicia o timer responsável por executar cada ciclo da simulação.
+     */
     private void iniciarTimer(int duracaoMinutos) {
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -75,6 +90,10 @@ public class Simulador {
         }, 0, 1000);
     }
 
+    /**
+     * Executa um ciclo da simulação: gera novos veículos, atualiza
+     * os existentes, aplica controle de semáforos e atualiza métricas.
+     */
     private void passoSimulacao() {
         gerarVeiculosIncrementais();
         atualizarVeiculos();
@@ -84,6 +103,9 @@ public class Simulador {
         if (tempoSimulacao % 10 == 0) logSemaforosCongestionados();
     }
 
+    /**
+     * Gera veículos durante a simulação até o limite predefinido.
+     */
     private void gerarVeiculosIncrementais() {
         if (tempoSimulacao % intervaloGeracao == 0 && veiculos.tamanho() < LIMITE_VEICULOS) {
             int faltantes = LIMITE_VEICULOS - veiculos.tamanho();
@@ -101,6 +123,9 @@ public class Simulador {
         }
     }
 
+    /**
+     * Atualiza a posição de todos os veículos e remove os que chegaram ao destino.
+     */
     private void atualizarVeiculos() {
         Lista<Veiculo> remover = new Lista<>();
         for (int i = 0; i < veiculos.tamanho(); i++) {
@@ -118,6 +143,9 @@ public class Simulador {
         }
     }
 
+    /**
+     * Define a rota ótima de um veículo usando o algoritmo de Dijkstra.
+     */
     private void definirRotaDijkstra(Veiculo veiculo) {
         Fila<Intersecao> caminho = Dijkstra.encontrarMenorCaminho(mapa.getGrafo(), veiculo.getOrigem(), veiculo.getDestino());
         Lista<Rua> rota = new Lista<>();
@@ -133,6 +161,9 @@ public class Simulador {
         veiculo.setRota(rota);
     }
 
+    /**
+     * Exibe os semáforos com maiores filas de veículos.
+     */
     private void logSemaforosCongestionados() {
         Lista<Semaforo> semaforos = ordenarSemaforosPorFila(controladorSemaforos.getSemaforos());
         System.out.println("\n[SEMAFOROS] Top congestionados:");
@@ -148,6 +179,9 @@ public class Simulador {
         }
     }
 
+    /**
+     * Ordena os semáforos por tamanho da fila de veículos de forma decrescente.
+     */
     private Lista<Semaforo> ordenarSemaforosPorFila(Lista<Semaforo> semaforos) {
         Lista<Semaforo> ordenados = new Lista<>();
         for (int i = 0; i < semaforos.tamanho(); i++) {
@@ -163,24 +197,39 @@ public class Simulador {
         return ordenados;
     }
 
+    /**
+     * Exibe no console as informações de um veículo recém-gerado.
+     */
     private void logVeiculoGerado(Veiculo v) {
         System.out.printf("[GERADO] Veículo %s - Origem: %s | Destino: %s\n",
                 v.getId(), v.getOrigem().getNome(), v.getDestino().getNome());
     }
 
+    /**
+     * Exibe os dados iniciais da simulação no console.
+     */
     private void logInicioSimulacao(ModoOperacao modo, int duracao) {
         System.out.println("Simulação iniciada - Modo: " + modo);
         System.out.println("Duração: " + duracao + " minutos simulados");
     }
 
+    /**
+     * Pausa a simulação.
+     */
     public void pausar() {
         pausado = true;
     }
 
+    /**
+     * Retoma a execução da simulação.
+     */
     public void continuar() {
         pausado = false;
     }
 
+    /**
+     * Finaliza a simulação e imprime estatísticas acumuladas.
+     */
     public void encerrar() {
         if (timer != null) timer.cancel();
         estatisticas.imprimirEstatisticas();
