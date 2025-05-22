@@ -18,8 +18,7 @@ public class HeuristicaTempoEspera implements HeuristicaControle {
 
             semaforo.ajustarTempos(verde, amarelo, vermelho);
 
-            System.out.printf("[HEURÍSTICA - TEMPO_ESPERA] Semáforo %s | Fila: %d | Verde: %ds\n",
-                    intersecao.getNome(), fila, verde);
+            
         }
     }
 }

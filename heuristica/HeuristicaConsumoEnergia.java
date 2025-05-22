@@ -18,8 +18,6 @@ public class HeuristicaConsumoEnergia implements HeuristicaControle {
 
             semaforo.ajustarTempos(verde, amarelo, vermelho);
 
-            System.out.printf("[HEURÍSTICA - CONSUMO_ENERGIA] Semáforo %s | Fila: %d | Vermelho: %ds\n",
-                    intersecao.getNome(), fila, vermelho);
         }
     }
 }

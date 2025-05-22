@@ -92,8 +92,8 @@ public class Estatisticas {
             ocupTotal += ocup;
             Intersecao destino = rua.getDestino();
             int tamanhoFila = destino.getFilaVeiculos().tamanho();
-            System.out.printf("- %s -> %s (%.0f%% ocupação) | Fila na interseção destino: %d veículos\n",
-                    rua.getOrigem(), destino, ocup * 100, tamanhoFila);
+            System.out.printf("- %s -> %s (%.0f%% ocupação)\n",
+                    rua.getOrigem(), destino, ocup * 100);
         }
 
         if (ruasMaisCongestionadas.tamanho() > 0) {

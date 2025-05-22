@@ -38,6 +38,9 @@ public class Semaforo {
 
     public void atualizar() {
         tempoRestante--;
+        System.out.printf("[SEMAFORO] %s | Estado: %s | Tempo restante: %ds | Fila de veículos: %d\n",
+                intersecao.getNome(), estado, tempoRestante, intersecao.getFilaVeiculos().tamanho());
+
         if (tempoRestante <= 0) {
             mudarEstado();
         }
@@ -80,16 +83,11 @@ public class Semaforo {
         return tempoRestante;
     }
 
+    // ✅ Corrigido: apenas atualiza os tempos, sem tocar no tempoRestante
     public void ajustarTempos(int verde, int amarelo, int vermelho) {
         this.tempoVerde = verde;
         this.tempoAmarelo = amarelo;
         this.tempoVermelho = vermelho;
-
-        tempoRestante = switch (estado) {
-            case VERDE -> (int) ((double) tempoRestante / tempoVerde * verde);
-            case AMARELO -> (int) ((double) tempoRestante / tempoAmarelo * amarelo);
-            case VERMELHO -> (int) ((double) tempoRestante / tempoVermelho * vermelho);
-        };
     }
 
     public void setModoOperacao(ModoOperacao modo) {
@@ -102,7 +100,7 @@ public class Semaforo {
 
     @Override
     public String toString() {
-        return "Semáforo " + intersecao.getNome() + ": " + estado + " (" + tempoRestante + "s)";
+        return "Semáforo " + intersecao.getNome() + ": " + estado + " (" + tempoRestante + "s) : Fila: " + intersecao.getFilaVeiculos().tamanho();
     }
 }
 
